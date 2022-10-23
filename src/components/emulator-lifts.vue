@@ -1,7 +1,7 @@
 <template>
 	<div class="emulator-lifts">
 		<lift-shaft v-for="liftNum in countLifts" :key="liftNum" />
-		<floor-buttons :count-floor="countFloor" />
+		<floor-buttons :count-floor="countFloor" @change="handleChangeFloor" />
 	</div>
 </template>
 
@@ -27,6 +27,16 @@ export default defineComponent({
 			countFloor: 5,
 		};
 	},
+
+	methods: {
+		/**
+		 * Обрабатываю изменение этажа
+		 * @param floor - номер этажа
+		 */
+		handleChangeFloor(floor: number) {
+			console.log(floor);
+		}
+	}
 });
 </script>
 

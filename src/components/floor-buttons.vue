@@ -1,6 +1,13 @@
 <template>
 	<div class="floor-buttons">
-		<button v-for="floor in countFloor" :key="floor">{{ floor }}</button>
+		<button 
+			type="button"
+			v-for="floor in countFloor"
+			:key="floor"
+			@click="handleClickFloor(floor)"
+		>
+			{{ floor }}
+		</button>
 	</div>
 </template>
 
@@ -10,6 +17,16 @@ import { defineComponent } from 'vue';
 export default defineComponent({
 	props: {
 		countFloor: Number,
+	},
+	emits: ['change'],
+	methods: {
+		/**
+		 * Обработка выбора этажа
+		 * @param floor - этаж
+		 */
+		handleClickFloor(floor: number) {
+			this.$emit('change', floor);
+		}
 	},
 });
 </script>
