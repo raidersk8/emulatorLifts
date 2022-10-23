@@ -1,5 +1,5 @@
 <template>
-	<emulator-lifts />
+	<emulator-lifts :count-lifts="2" />
 </template>
 
 <script lang="ts">
