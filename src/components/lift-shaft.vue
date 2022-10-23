@@ -4,6 +4,7 @@
 			class="lift-shaft__lift-cabin"
 			:style="{ bottom: liftCabinButton, 'transition-duration': liftCabinDuration}"
 			:state="state"
+			:direction="direction"
 		/>
 	</div>
 </template>
@@ -12,7 +13,7 @@
 import { defineComponent } from 'vue';
 import type { PropType } from 'vue'
 import LiftCabin from '@/components/lift-cabin.vue'; // Кабина лифта
-import { StateLift } from '@/enums/bootstrap' // Enum StateLift
+import { StateLift, DirectionsLift } from '@/enums/bootstrap' // Enum StateLift
 
 export default defineComponent({
 	props: {
@@ -36,11 +37,13 @@ export default defineComponent({
 		oldFloor: number, // Предыдущий этаж
 		liftCabinDuration: string, // Скорость лифта
 		waitingTime: number, // Время ожидание лифта после приезда на этаж
+		direction: DirectionsLift,
 	} {
 		return {
 			oldFloor: this.floor,
 			liftCabinDuration: '1s',
 			waitingTime: 2000,
+			direction: DirectionsLift.wait,
 		};
 	},
 	emits: ['changeState'],
@@ -48,10 +51,21 @@ export default defineComponent({
 		LiftCabin,
 	},
 	watch: {
+		/**
+		 * Действия при изменении этажа
+		 */
 		floor() {
 			// Высчитываем скорость лифта
 			const timeout = Math.abs(this.oldFloor - this.floor);
 			this.liftCabinDuration = timeout + 's';
+
+			// Определяем направление лифта
+			if (this.floor > this.oldFloor) {
+				this.direction = DirectionsLift.up;
+			} else if (this.floor < this.oldFloor) {
+				this.direction = DirectionsLift.down;
+			}
+
 			this.oldFloor = this.floor;
 
 			// Изменяем изменение состояния лифтов по мере прохождения анимации
@@ -81,7 +95,7 @@ export default defineComponent({
 		/**
 		 * Меняем состояния лифта от начала движения до готовности к новому вызову
 		 */
-		async liftCycleFromMoveToReady(duration: number) {
+		async liftCycleFromMoveToReady(duration: number): Promise<void> {
 			this.changeState(StateLift.move);
 			await this.delay(duration);
 			this.changeState(StateLift.wait);

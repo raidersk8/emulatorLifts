@@ -36,14 +36,11 @@ export default defineComponent({
 			type: Number,
 			default: 1,
 		},
-	},
-
-	data(): {
-		countFloor: number, // Кол-во этажей
-	} {
-		return {
-			countFloor: 5,
-		};
+		// Кол-во этажей
+		countFloor: {
+			type: Number,
+			default: 5,
+		},
 	},
 
 	setup(props) {

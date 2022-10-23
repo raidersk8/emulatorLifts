@@ -4,3 +4,9 @@ export enum StateLift {
 	move,
 	wait,
 }
+
+export enum DirectionsLift {
+	up,
+	down,
+	wait,
+}
