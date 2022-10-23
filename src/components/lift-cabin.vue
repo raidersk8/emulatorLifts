@@ -2,7 +2,7 @@
 	<div class="lift-cabin"></div>
 </template>
 
-<style type="scss">
+<style lang="scss">
 	.lift-cabin {
 		position: absolute;
 		height: 60px;
