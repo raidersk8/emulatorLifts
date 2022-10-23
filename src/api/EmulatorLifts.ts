@@ -1,5 +1,5 @@
-import { ref } from 'vue'
-import type { Ref } from 'vue'
+import { ref, computed } from 'vue'
+import type { Ref, ComputedRef } from 'vue'
 import { StateLift } from '@/enums/bootstrap'
 
 // Структура данных лифта
@@ -12,18 +12,20 @@ interface ILift {
 let lifts: Ref<ILift[]>;
 
 // Очередь вызова этажей
-const callStack: number[] = [];
+const callStack: Ref<number[]> = ref([]);
 
 export default function emulatorLifts(count: number): {
 	lifts: Ref<ILift[]>, // Массив лифтов
 	setState: (index: number, state: StateLift) => void, // Меняем состояние лифта по индексу
-	liftCall: (floor: number) => void, // Логика работы лифтов 
+	liftCall: (floor: number) => void, // Логика работы лифтов
+	waitFloors: ComputedRef<number[]>, // Стек вызовов только(для чтения)
 } {
 	fillLifts(count);
 	return {
 		lifts,
 		setState,
 		liftCall,
+		waitFloors: computed(waitFloor),
 	};
 }
 /**
@@ -77,8 +79,8 @@ function liftsAlreadyOnTheFloor(floor: number): boolean {
  * @param floor - Этаж
  */
 function addFloorToStack(floor: number) {
-	if (!callStack.includes(floor)) {
-		callStack.push(floor);
+	if (!callStack.value.includes(floor)) {
+		callStack.value.push(floor);
 	}
 }
 
@@ -91,12 +93,26 @@ function handingOutFloors():void {
 
 	// Раздаем этажи свободным лифтам
 	readyLifts.forEach((item: ILift) => {
-		if (callStack.length > 0) {
+		if (callStack.value.length > 0) {
 			// Удаляем этаж из очереди вызовов
-			const floor = callStack.pop();
+			const floor = callStack.value.pop();
 			if (typeof(floor) === 'number') {
 				item.floor = floor;
 			}
 		}
 	});
+}
+
+/**
+ * Получаем список ждущий этажей
+ */
+function waitFloor(): number[] {
+	const filterLifts = lifts.value.filter((lift: ILift) => {
+		return (
+			!callStack.value.includes(lift.floor) && 
+			lift.state === StateLift.move
+		);
+	});
+	const mapLifts = filterLifts.map((lift: ILift) => lift.floor);
+	return [...mapLifts, ...callStack.value];
 }

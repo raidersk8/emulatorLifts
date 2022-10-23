@@ -8,7 +8,12 @@
 			:state="lift.state"
 			@changeState="handleChangeStateLift($event, index)"
 		/>
-		<floor-buttons :count-floor="countFloor" @change="handleChangeFloor" />
+		<floor-buttons
+			:count-floor="countFloor"
+			:wait-floors="waitFloors"
+			@change="handleChangeFloor"
+		/>
+		{{callStack}}
 	</div>
 </template>
 
@@ -42,11 +47,12 @@ export default defineComponent({
 	},
 
 	setup(props) {
-		let { lifts, setState, liftCall } = emulatorLifts(props.countLifts);
+		let { lifts, setState, liftCall, waitFloors } = emulatorLifts(props.countLifts);
 		return {
 			lifts,
 			setState,
 			liftCall,
+			waitFloors,
 		};
 	},
 

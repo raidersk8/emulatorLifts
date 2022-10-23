@@ -1,5 +1,5 @@
 <template>
-	<div class="lift-cabin" :class="{ 'lift-cabin--wait': isWait }">{{ state }}</div>
+	<div class="lift-cabin" :class="{ 'lift-cabin--wait': isWait }"></div>
 </template>
 
 <script lang="ts">

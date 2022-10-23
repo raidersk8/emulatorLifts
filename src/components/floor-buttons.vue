@@ -4,6 +4,7 @@
 			type="button"
 			v-for="floor in countFloor"
 			:key="floor"
+			:class="{ 'floor-buttons__button--wait': waitFloors.includes(floor) }"
 			@click="handleClickFloor(floor)"
 		>
 			{{ floor }}
@@ -12,11 +13,14 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
+import { defineComponent, PropType } from 'vue';
 
 export default defineComponent({
 	props: {
+		// Кол-во этажей
 		countFloor: Number,
+		// Список этаже ждущих лифт
+		waitFloors: Array as PropType<number[]>,
 	},
 	emits: ['change'],
 	methods: {
@@ -31,11 +35,17 @@ export default defineComponent({
 });
 </script>
 
-<style type="scss">
+<style lang="scss">
 	.floor-buttons {
 		display: flex;
 		flex-direction: column-reverse;
 		justify-content: space-around;
 		height: 300px;
+
+		&__button {
+			&--wait {
+				background: red;
+			}
+		}
 	}
 </style>
