@@ -42,10 +42,11 @@ export default defineComponent({
 	},
 
 	setup(props) {
-		let { lifts, setState } = emulatorLifts(props.countLifts);
+		let { lifts, setState, liftCall } = emulatorLifts(props.countLifts);
 		return {
 			lifts,
 			setState,
+			liftCall,
 		};
 	},
 
@@ -55,7 +56,7 @@ export default defineComponent({
 		 * @param floor - номер этажа
 		 */
 		handleChangeFloor(floor: number):void {
-			this.lifts[1].floor = floor;
+			this.liftCall(floor);
 		},
 
 		/**
