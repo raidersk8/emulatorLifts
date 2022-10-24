@@ -1,14 +1,18 @@
 <template>
 	<div class="floor-buttons">
-		<button 
-			type="button"
+		<div
+			class="floor-buttons__wrap-button"
 			v-for="floor in countFloor"
 			:key="floor"
-			:class="{ 'floor-buttons__button--wait': waitFloors.includes(floor) }"
-			@click="handleClickFloor(floor)"
 		>
-			{{ floor }}
-		</button>
+			<button 
+				type="button"
+				:class="{ 'floor-buttons__button--wait': waitFloors.includes(floor) }"
+				@click="handleClickFloor(floor)"
+			>
+				{{ floor }}
+			</button>
+		</div>
 	</div>
 </template>
 
@@ -40,7 +44,19 @@ export default defineComponent({
 		display: flex;
 		flex-direction: column-reverse;
 		justify-content: space-around;
-		height: 300px;
+
+		&__wrap-button {
+			height: 100%;
+
+			&::before {
+				content: '';
+				display: block;
+				position: absolute;
+				width: 100%;
+				border-bottom: 1px solid black;
+				left: 0;
+			}
+		}
 
 		&__button {
 			&--wait {

@@ -46,16 +46,19 @@ export default defineComponent({
 		bottom: 0;
 		width: 100%;
 		text-align: center;
+		font-size: 14px;
+		padding-top: 5px;
+		box-sizing: border-box;
 
 		&::before {
 			content: '▲';
-			display: block;
+			display: inline-block;
 			color: black;
 		}
 
 		&::after {
 			content: '▼';
-			display: block;
+			display: inline-block;
 			color: black;
 		}
 

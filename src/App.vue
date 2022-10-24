@@ -1,5 +1,5 @@
 <template>
-	<emulator-lifts :count-lifts="5" :count-floor="10" />
+	<emulator-lifts :count-lifts="5" :count-floor="7" />
 </template>
 
 <script lang="ts">

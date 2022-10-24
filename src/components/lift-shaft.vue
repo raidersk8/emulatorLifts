@@ -2,7 +2,7 @@
 	<div class="lift-shaft" ref="liftShaft">
 		<lift-cabin
 			class="lift-shaft__lift-cabin"
-			:style="{ bottom: liftCabinButton, 'transition-duration': liftCabinDuration}"
+			:style="{ bottom: liftCabinButton, 'transition-duration': liftCabinDuration, height: liftCabinHeight}"
 			:state="state"
 			:floor="moveFloor"
 			:direction="direction"
@@ -109,6 +109,13 @@ export default defineComponent({
 		liftCabinButton(): string {
 			return ((this.height / this.countFloor) * (this.floor - 1)) + 'px';
 		},
+
+		/**
+		 * Меняем высоту лифта, чтобы был высотой с этаж
+		 */
+		liftCabinHeight(): string {
+			return (this.height / this.countFloor) + 'px';
+		},
 	},
 	methods: {
 		/**
@@ -203,7 +210,7 @@ export default defineComponent({
 		position: relative;
 		border: 1px solid red;
 		width: 100px;
-		height: 300px;
+		height: 450px;
 
 		&__lift-cabin {
 			transition: bottom 0s linear;
