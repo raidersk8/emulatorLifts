@@ -9,6 +9,12 @@ interface ILift {
 	moveFloor: number, // Номер этажа во время движения
 }
 
+// Структура с индексом и разницей этажей 
+interface IDifferenceFloor {
+	index: number,
+	differenceFloor: number,
+}
+
 // Данные лифтов
 let lifts: Ref<ILift[]>;
 
@@ -102,19 +108,43 @@ function handingOutFloors():void {
 	// Находим лифты в свободном статусе
 	const readyLifts = lifts.value.filter((item) => item.state === StateLift.ready);
 
-	// Раздаем этажи свободным лифтам
-	readyLifts.forEach((item: ILift) => {
-		if (callStack.value.length > 0) {
-			// Удаляем этаж из очереди вызовов
-			const floor = callStack.value.pop();
-			if (typeof(floor) === 'number') {
-				item.floor = floor;
-			}
+	// Раздаем этажи ближайшим свободным лифтам
+	while(
+		callStack.value.length > 0 &&
+		readyLifts.length > 0
+	) {
+		const callFloor: number | undefined = callStack.value.pop();
+		if (typeof(callFloor) === 'number') {
+			const indexLift: number = nearestLift(readyLifts, callFloor);
+			readyLifts[indexLift].floor = callFloor;
+			readyLifts.splice(indexLift, 1);
 		}
-	});
+	}
 
 	// Сохраняем состояние приложения
 	saveSessionStorage();
+}
+
+/**
+ * Найти ближайший лифт к этажу и вывести индекс
+ * @param lifts - лифты
+ * @param floor - этаж
+ */
+function nearestLift(lifts: ILift[], floor: number): number {
+	let minDifferenceFloor: IDifferenceFloor = {
+		index: 0,
+		differenceFloor:  Math.abs(lifts[0].floor - floor),
+	};
+	lifts.forEach((lift: ILift, index) => {
+		const differenceFloor = Math.abs(lift.floor - floor);
+		if (!minDifferenceFloor || minDifferenceFloor.differenceFloor > differenceFloor) {
+			minDifferenceFloor = {
+				index,
+				differenceFloor,
+			};
+		}
+	});
+	return minDifferenceFloor.index;
 }
 
 /**
