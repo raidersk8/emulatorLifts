@@ -1,4 +1,4 @@
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import type { Ref, ComputedRef } from 'vue'
 import { StateLift } from '@/enums/bootstrap'
 
@@ -21,6 +21,13 @@ export default function emulatorLifts(count: number): {
 	waitFloors: ComputedRef<number[]>, // Стек вызовов только(для чтения)
 } {
 	fillLifts(count);
+
+	// Загружаем данные из sessionStorage
+	loadSessionStorage();
+	onMounted(() => {
+		// Запускаем раздачу задач лифтам
+		handingOutFloors();
+	});
 	return {
 		lifts,
 		setState,
@@ -85,7 +92,7 @@ function addFloorToStack(floor: number) {
 }
 
 /**
- * Раздаем этажи лифтам или очереди вызовов
+ * Раздаем этажи лифтам
  */
 function handingOutFloors():void {
 	// Находим лифты в свободном статусе
@@ -101,6 +108,9 @@ function handingOutFloors():void {
 			}
 		}
 	});
+
+	// Сохраняем состояние приложения
+	saveSessionStorage();
 }
 
 /**
@@ -115,4 +125,26 @@ function waitFloor(): number[] {
 	});
 	const mapLifts = filterLifts.map((lift: ILift) => lift.floor);
 	return [...mapLifts, ...callStack.value];
+}
+
+/**
+ * Сохраняем состояние приложения
+ */
+function saveSessionStorage() {
+	sessionStorage.setItem('emulatorLifts', JSON.stringify({
+		lifts: lifts.value,
+		callStack: callStack.value,
+	}));
+}
+
+/**
+ * Загружаем состояние приложения (нормально будет работать только если подгружать в created)
+ */
+function loadSessionStorage(): void {
+	const emulatorLiftsData: string | null = sessionStorage.getItem('emulatorLifts');
+	if (typeof(emulatorLiftsData) === 'string') {
+		const parseData = JSON.parse(emulatorLiftsData);
+		lifts.value = parseData.lifts;
+		callStack.value = parseData.callStack;
+	}
 }

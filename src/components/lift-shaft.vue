@@ -38,12 +38,15 @@ export default defineComponent({
 		liftCabinDuration: string, // Скорость лифта
 		waitingTime: number, // Время ожидание лифта после приезда на этаж
 		direction: DirectionsLift,
+		height: number, // Храним высоту шахты в отдельной переменной 
 	} {
 		return {
 			oldFloor: this.floor,
-			liftCabinDuration: '1s',
+			// Нужно 0, чтобы не было анимации если лифт изначально находиться на каком-то этаже
+			liftCabinDuration: '0s',
 			waitingTime: 2000,
 			direction: DirectionsLift.wait,
+			height: 0,
 		};
 	},
 	emits: ['changeState'],
@@ -72,16 +75,34 @@ export default defineComponent({
 			this.liftCycleFromMoveToReady(timeout * 1000);
 		},
 	},
+	mounted() {
+		// Обновляем высоту шахты при монтировании компонента
+		if (this.$refs.liftShaft && this.$refs.liftShaft instanceof HTMLDivElement) {
+			this.height = this.$refs.liftShaft.clientHeight;
+		}
+
+		// Если лифт в состоянии ожидания то ждем и переводим в статус готов
+		if (this.state === StateLift.wait) {
+			this.delay(this.waitingTime).then(() => {
+				this.changeState(StateLift.ready)
+			});
+		}
+
+		// TODO: Для продолжения движения нужно доработать компонент отслеживать этаж лифта в движении
+		// Если лифт в состоянии движение то просто переводим в состояние ожидания и потом готовности
+		if (this.state === StateLift.move) {
+			this.changeState(StateLift.wait)
+			this.delay(this.waitingTime).then(() => {
+				this.changeState(StateLift.ready)
+			});
+		}
+	},
 	computed: {
 		/**
-		 * Получаем скорость
+		 * Получаем положение лифта
 		 */
 		liftCabinButton(): string {
-			let liftShaftHeight = 1;
-			if (this.$refs.liftShaft && this.$refs.liftShaft instanceof HTMLDivElement) {
-				liftShaftHeight = this.$refs.liftShaft.clientHeight;
-			}
-			return ((liftShaftHeight / this.countFloor) * (this.floor - 1)) + 'px';
+			return ((this.height / this.countFloor) * (this.floor - 1)) + 'px';
 		},
 	},
 	methods: {
@@ -124,7 +145,7 @@ export default defineComponent({
 		height: 300px;
 
 		&__lift-cabin {
-			transition: bottom 1s linear;
+			transition: bottom 0s linear;
 		}
 	}
 </style>

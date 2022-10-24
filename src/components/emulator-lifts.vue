@@ -13,8 +13,8 @@
 			:wait-floors="waitFloors"
 			@change="handleChangeFloor"
 		/>
-		{{callStack}}
 	</div>
+	
 </template>
 
 <script lang="ts">
