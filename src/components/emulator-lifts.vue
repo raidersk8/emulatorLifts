@@ -5,6 +5,7 @@
 			:key="index"
 			:count-floor="countFloor"
 			:floor="lift.floor"
+			v-model:move-floor="lift.moveFloor"
 			:state="lift.state"
 			@changeState="handleChangeStateLift($event, index)"
 		/>

@@ -6,6 +6,7 @@ import { StateLift } from '@/enums/bootstrap'
 interface ILift {
 	floor: number,
 	state: StateLift,
+	moveFloor: number, // Номер этажа во время движения
 }
 
 // Данные лифтов
@@ -45,6 +46,7 @@ function fillLifts(count: number):void {
 		lifts.value[i] = {
 			floor: 1,
 			state: StateLift.ready,
+			moveFloor: 1,
 		};
 	}
 }

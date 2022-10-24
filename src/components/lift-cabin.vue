@@ -1,5 +1,6 @@
 <template>
 	<div class="lift-cabin" :class="classes">
+		{{ floor }}
 	</div>
 </template>
 
@@ -10,6 +11,7 @@ import { StateLift, DirectionsLift } from '@/enums/bootstrap' // Enum StateLift
 
 export default defineComponent({
 	props: {
+		floor: Number,
 		state: {
 			type: Number as PropType<StateLift>,
 			default: StateLift.ready,

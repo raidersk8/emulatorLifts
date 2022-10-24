@@ -4,6 +4,7 @@
 			class="lift-shaft__lift-cabin"
 			:style="{ bottom: liftCabinButton, 'transition-duration': liftCabinDuration}"
 			:state="state"
+			:floor="moveFloor"
 			:direction="direction"
 		/>
 	</div>
@@ -17,6 +18,11 @@ import { StateLift, DirectionsLift } from '@/enums/bootstrap' // Enum StateLift
 
 export default defineComponent({
 	props: {
+		// Положение лифта во время анимации
+		moveFloor: {
+			type: Number,
+			default: 1,
+		},
 		// Этаж
 		floor: {
 			type: Number,
@@ -49,7 +55,7 @@ export default defineComponent({
 			height: 0,
 		};
 	},
-	emits: ['changeState'],
+	emits: ['changeState', 'update:moveFloor'],
 	components: {
 		LiftCabin,
 	},
@@ -59,8 +65,8 @@ export default defineComponent({
 		 */
 		floor() {
 			// Высчитываем скорость лифта
-			const timeout = Math.abs(this.oldFloor - this.floor);
-			this.liftCabinDuration = timeout + 's';
+			const seconds = Math.abs(this.oldFloor - this.floor);
+			this.liftCabinDuration = seconds + 's';
 
 			// Определяем направление лифта
 			if (this.floor > this.oldFloor) {
@@ -69,10 +75,13 @@ export default defineComponent({
 				this.direction = DirectionsLift.down;
 			}
 
+			// Помечаем изначальное движение лифта
+			this.updateMoveFloor(this.oldFloor);
+
 			this.oldFloor = this.floor;
 
 			// Изменяем изменение состояния лифтов по мере прохождения анимации
-			this.liftCycleFromMoveToReady(timeout * 1000);
+			this.liftCycleFromMoveToReady(seconds);
 		},
 	},
 	mounted() {
@@ -116,9 +125,20 @@ export default defineComponent({
 		/**
 		 * Меняем состояния лифта от начала движения до готовности к новому вызову
 		 */
-		async liftCycleFromMoveToReady(duration: number): Promise<void> {
+		async liftCycleFromMoveToReady(seconds: number): Promise<void> {
 			this.changeState(StateLift.move);
-			await this.delay(duration);
+
+			// Каждую секунду меняем этаж
+			let moveFloorInterval = setInterval(() => {
+				if (this.moveFloor < this.floor) {
+					this.updateMoveFloor(Math.min(this.moveFloor + 1, this.floor));
+				} else {
+					this.updateMoveFloor(Math.max(this.moveFloor - 1, this.floor));
+				}
+			}, 1000);
+			await this.delay(seconds * 1000);
+			clearTimeout(moveFloorInterval);
+			this.updateMoveFloor(this.floor);
 			this.changeState(StateLift.wait);
 			await this.delay(this.waitingTime);
 			this.changeState(StateLift.ready);
@@ -132,6 +152,13 @@ export default defineComponent({
 			return new Promise((resolve) => {
 				setTimeout(resolve, duration);
 			});
+		},
+
+		/**
+		 * Обновляем изменение этажей во время движения лифта
+		 */
+		updateMoveFloor(value: number) {
+			this.$emit('update:moveFloor', value);
 		},
 	},
 });
