@@ -4,9 +4,10 @@
 			v-for="(lift, index) in lifts"
 			:key="index"
 			:count-floor="countFloor"
-			:floor="lift.floor"
+			v-model:floor="lift.floor"
 			v-model:move-floor="lift.moveFloor"
 			:state="lift.state"
+			@update:moveFloor="handleUpdateMoveFloor($event, index)"
 			@changeState="handleChangeStateLift($event, index)"
 		/>
 		<floor-buttons
@@ -45,12 +46,13 @@ export default defineComponent({
 	},
 
 	setup(props) {
-		let { lifts, setState, liftCall, waitFloors } = emulatorLifts(props.countLifts);
+		let { lifts, setState, liftCall, waitFloors, setMoveFloor } = emulatorLifts(props.countLifts);
 		return {
 			lifts,
 			setState,
 			liftCall,
 			waitFloors,
+			setMoveFloor,
 		};
 	},
 
@@ -70,6 +72,15 @@ export default defineComponent({
 		 */
 		handleChangeStateLift(state: StateLift, index: number): void {
 			this.setState(index, state);
+		},
+
+		/**
+		 * Обработка изменения движения лифта
+		 * @param state - этаж
+		 * @param index - индекс
+		 */
+		handleUpdateMoveFloor(floor: number, index: number): void {
+			this.setMoveFloor(index, floor);
 		},
 	},
 });

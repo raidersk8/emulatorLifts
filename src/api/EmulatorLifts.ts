@@ -20,6 +20,7 @@ export default function emulatorLifts(count: number): {
 	setState: (index: number, state: StateLift) => void, // Меняем состояние лифта по индексу
 	liftCall: (floor: number) => void, // Логика работы лифтов
 	waitFloors: ComputedRef<number[]>, // Стек вызовов только(для чтения)
+	setMoveFloor: (index: number, floor: number) => void, // Функция для изменения этажа во время движения
 } {
 	fillLifts(count);
 
@@ -34,6 +35,7 @@ export default function emulatorLifts(count: number): {
 		setState,
 		liftCall,
 		waitFloors: computed(waitFloor),
+		setMoveFloor,
 	};
 }
 /**
@@ -149,4 +151,15 @@ function loadSessionStorage(): void {
 		lifts.value = parseData.lifts;
 		callStack.value = parseData.callStack;
 	}
+}
+
+/**
+ * Меняем этаж во время движения
+ * @param index - индекс лифта
+ * @param floor - этаж
+ */
+function setMoveFloor(index: number, floor: number):void {
+	lifts.value[index].moveFloor = floor;
+	// Сохраняем состояние приложения
+	saveSessionStorage();
 }

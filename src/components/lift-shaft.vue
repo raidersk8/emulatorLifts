@@ -41,21 +41,25 @@ export default defineComponent({
 	},
 	data(): {
 		oldFloor: number, // Предыдущий этаж
+		finishFloor: number, // Для движения лифта к этажу до перезагрузки
 		liftCabinDuration: string, // Скорость лифта
 		waitingTime: number, // Время ожидание лифта после приезда на этаж
 		direction: DirectionsLift,
 		height: number, // Храним высоту шахты в отдельной переменной 
+		isSkipLiftCycle: boolean, // Пропускаем изменения состояния лифта от начала движения до готовности 
 	} {
 		return {
 			oldFloor: this.floor,
+			finishFloor: this.floor,
 			// Нужно 0, чтобы не было анимации если лифт изначально находиться на каком-то этаже
 			liftCabinDuration: '0s',
 			waitingTime: 2000,
 			direction: DirectionsLift.wait,
 			height: 0,
+			isSkipLiftCycle: false,
 		};
 	},
-	emits: ['changeState', 'update:moveFloor'],
+	emits: ['changeState', 'update:floor', 'update:moveFloor'],
 	components: {
 		LiftCabin,
 	},
@@ -64,24 +68,7 @@ export default defineComponent({
 		 * Действия при изменении этажа
 		 */
 		floor() {
-			// Высчитываем скорость лифта
-			const seconds = Math.abs(this.oldFloor - this.floor);
-			this.liftCabinDuration = seconds + 's';
-
-			// Определяем направление лифта
-			if (this.floor > this.oldFloor) {
-				this.direction = DirectionsLift.up;
-			} else if (this.floor < this.oldFloor) {
-				this.direction = DirectionsLift.down;
-			}
-
-			// Помечаем изначальное движение лифта
-			this.updateMoveFloor(this.oldFloor);
-
-			this.oldFloor = this.floor;
-
-			// Изменяем изменение состояния лифтов по мере прохождения анимации
-			this.liftCycleFromMoveToReady(seconds);
+			this.changeFloor();
 		},
 	},
 	mounted() {
@@ -97,12 +84,21 @@ export default defineComponent({
 			});
 		}
 
-		// TODO: Для продолжения движения нужно доработать компонент отслеживать этаж лифта в движении
 		// Если лифт в состоянии движение то просто переводим в состояние ожидания и потом готовности
 		if (this.state === StateLift.move) {
-			this.changeState(StateLift.wait)
-			this.delay(this.waitingTime).then(() => {
-				this.changeState(StateLift.ready)
+			// Помечаем что не надо проходить все этапы движения лифта
+			this.isSkipLiftCycle = true;
+
+			// обновляем этаж, чтобы лифт начал с точки где двигался до перезагрузки
+			this.updateFloor(this.moveFloor);
+			this.oldFloor = this.moveFloor;
+
+			// В следующем тике возражаем значение этажа чтобы продолжилось движение
+			this.$nextTick(() => {
+				this.isSkipLiftCycle = false;
+				setTimeout(() => {
+					this.updateFloor(this.finishFloor);
+				}, 100);
 			});
 		}
 	},
@@ -127,21 +123,26 @@ export default defineComponent({
 		 */
 		async liftCycleFromMoveToReady(seconds: number): Promise<void> {
 			this.changeState(StateLift.move);
-
-			// Каждую секунду меняем этаж
-			let moveFloorInterval = setInterval(() => {
-				if (this.moveFloor < this.floor) {
-					this.updateMoveFloor(Math.min(this.moveFloor + 1, this.floor));
-				} else {
-					this.updateMoveFloor(Math.max(this.moveFloor - 1, this.floor));
-				}
-			}, 1000);
+			let moveFloorInterval: number = this.intervalMoveFloor();
 			await this.delay(seconds * 1000);
 			clearTimeout(moveFloorInterval);
 			this.updateMoveFloor(this.floor);
 			this.changeState(StateLift.wait);
 			await this.delay(this.waitingTime);
 			this.changeState(StateLift.ready);
+		},
+
+		/**
+		 * Каждую секунду меняем этаж
+		 */
+		intervalMoveFloor(): number {
+			return setInterval(() => {
+				if (this.moveFloor < this.floor) {
+					this.updateMoveFloor(Math.min(this.moveFloor + 1, this.floor));
+				} else {
+					this.updateMoveFloor(Math.max(this.moveFloor - 1, this.floor));
+				}
+			}, 1000);
 		},
 
 		/**
@@ -159,6 +160,39 @@ export default defineComponent({
 		 */
 		updateMoveFloor(value: number) {
 			this.$emit('update:moveFloor', value);
+		},
+
+		/**
+		 * Обновляем этаж лифта
+		 */
+		updateFloor(value: number) {
+			this.$emit('update:floor', value);
+		},
+
+		/**
+		 * Действия при изменении этажа
+		 */
+		changeFloor() {
+			// Высчитываем скорость лифта
+			const seconds = Math.abs(this.oldFloor - this.floor);
+			this.liftCabinDuration = seconds + 's';
+
+			// Определяем направление лифта
+			if (this.floor > this.oldFloor) {
+				this.direction = DirectionsLift.up;
+			} else if (this.floor < this.oldFloor) {
+				this.direction = DirectionsLift.down;
+			}
+
+			// Помечаем изначальное движение лифта
+			this.updateMoveFloor(this.oldFloor);
+
+			this.oldFloor = this.floor;
+
+			if (!this.isSkipLiftCycle) {
+				// Изменяем изменение состояния лифтов по мере прохождения анимации
+				this.liftCycleFromMoveToReady(seconds);
+			}
 		},
 	},
 });
