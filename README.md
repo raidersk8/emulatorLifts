@@ -1,4 +1,7 @@
 # emulator-lifts
+Посмотреть результат
+[raidersk8.github.io/emulatorLifts/dist/](https://raidersk8.github.io/emulatorLifts/dist/)
+
 
 ## Project setup
 ```
